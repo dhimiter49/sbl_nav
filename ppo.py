@@ -48,7 +48,7 @@ else:
     else:
         model = PPO(
             "MlpPolicy", vec_env,
-            policy_kwargs={"net_arch": [256, 256]},
+            policy_kwargs={"net_arch": {"pi": [256, 256], "vf": [256, 256]}},
             clip_range=0.15,
             learning_rate=1e-4,
             verbose=1,
