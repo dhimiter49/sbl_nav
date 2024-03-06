@@ -46,7 +46,15 @@ else:
     if load_path is not None:
         model = PPO.load(load_path, env=vec_env)
     else:
-        model = PPO("MlpPolicy", vec_env, verbose=1, n_steps=64, tensorboard_log=tb_path)
+        model = PPO(
+            "MlpPolicy", vec_env,
+            policy_kwargs={"net_arch": [256, 256]},
+            clip_range=0.15,
+            learning_rate=1e-4,
+            verbose=1,
+            n_steps=64,
+            tensorboard_log=tb_path
+        )
 
     model.learn(total_timesteps=10000000)
     model.save(tb_path + "/model_ppo")
