@@ -28,7 +28,7 @@ load_path = None if "-l" not in sys.argv else load_agent()
 tb_path = tb_time() if "-p" not in sys.argv else tb_custom()
 tb_path = "exp/" + tb_path
 test = "-t" in sys.argv
-n_envs = 8 if "-ne" not in sys.argv else num_env()
+n_envs = 8 if "-ne" not in sys.argv else int(num_env())
 n_envs = 1 if test else n_envs
 
 
