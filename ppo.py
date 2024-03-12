@@ -53,7 +53,7 @@ else:
         model = PPO(
             "MlpPolicy", vec_env,
             policy_kwargs={
-                "net_arch": {"pi": [256, 256], "vf": [256, 256]},
+                "net_arch": {"pi": [64, 64], "vf": [64, 64]},
                 "log_std_init": 1.,
                 "ortho_init": False
             },
@@ -61,6 +61,7 @@ else:
             clip_range_vf=0.2,
             learning_rate=3e-4,
             verbose=1,
+            n_steps=1024,
             tensorboard_log=tb_path
         )
 
