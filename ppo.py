@@ -6,6 +6,7 @@ import fancy_gym
 
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_util import make_vec_env
+from stable_baselines3.common.callbacks import CheckpointCallback
 
 
 def read_env():
@@ -29,6 +30,8 @@ tb_path = tb_time() if "-p" not in sys.argv else tb_custom()
 tb_path = "exp/" + tb_path
 test = "-t" in sys.argv
 n_envs = 8 if "-ne" not in sys.argv else int(num_env())
+
+save_callback = CheckpointCallback(1000000 / n_envs, tb_path + "/model_ppo")
 
 if test:
     model = PPO.load(load_path)
@@ -54,9 +57,8 @@ else:
             clip_range_vf=0.2,
             learning_rate=1e-4,
             verbose=1,
-            n_steps=64,
+            n_steps=128,
             tensorboard_log=tb_path
         )
 
-    model.learn(total_timesteps=10000000)
-    model.save(tb_path + "/model_ppo")
+    model.learn(total_timesteps=10000000, callback=save_callback)
