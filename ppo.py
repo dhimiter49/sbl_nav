@@ -54,8 +54,7 @@ else:
             "MlpPolicy", vec_env,
             policy_kwargs={
                 "net_arch": {"pi": [64, 64], "vf": [64, 64]},
-                "log_std_init": 1.,
-                "ortho_init": False
+                "log_std_init": 0.3,
             },
             clip_range=0.2,
             clip_range_vf=0.2,
