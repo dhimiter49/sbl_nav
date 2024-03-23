@@ -6,23 +6,29 @@ import fancy_gym
 
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_util import make_vec_env
+from stable_baselines3.common.vec_env import VecNormalize
 from stable_baselines3.common.callbacks import CheckpointCallback
 
 
 def read_env():
     return sys.argv[sys.argv.index("-e") + 1]
 
+
 def load_agent():
     return sys.argv[sys.argv.index("-l") + 1]
+
 
 def tb_time():
     return datetime.now().strftime("%d_%m_%Y-%H:%M:%S")
 
+
 def tb_custom():
     return sys.argv[sys.argv.index("-p") + 1]
 
+
 def num_env():
     return sys.argv[sys.argv.index("-ne") + 1]
+
 
 env_id = "fancy_ProDMP/Navigation-v0" if "-e" not in sys.argv else read_env()
 load_path = None if "-l" not in sys.argv else load_agent()
@@ -46,7 +52,8 @@ if test:
         if dones or terminal:
             obs, _ = env.reset()
 else:
-    vec_env = make_vec_env(env_id, n_envs=n_envs)
+    vec_env_ = make_vec_env(env_id, n_envs=n_envs)
+    vec_env = VecNormalize(vec_env_, norm_obs=True)
     if load_path is not None:
         model = PPO.load(load_path, env=vec_env)
     else:
