@@ -42,7 +42,7 @@ save_callback = CheckpointCallback(1000000 / n_envs, tb_path + "/model_ppo")
 if test:
     model = PPO.load(load_path)
 
-    env = VecNormalize(make_vec_env(env_id, n_envs=1), norm_obs=True)
+    env = make_vec_env(env_id, n_envs=1)
     obs = env.reset()
     ret = 0
     for i in range(10000):
