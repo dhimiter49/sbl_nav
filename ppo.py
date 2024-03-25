@@ -42,15 +42,19 @@ save_callback = CheckpointCallback(1000000 / n_envs, tb_path + "/model_ppo")
 if test:
     model = PPO.load(load_path)
 
-    env = gym.make(env_id)
-    obs, _ = env.reset()
+    env = VecNormalize(make_vec_env(env_id, n_envs=1), norm_obs=True)
+    obs = env.reset()
+    ret = 0
     for i in range(10000):
         action, _ = model.predict(obs)
-        obs, rewards, dones, terminal, info = env.step(action)
+        obs, rewards, dones, info = env.step(action)
         env.render()
+        ret += rewards
 
-        if dones or terminal:
-            obs, _ = env.reset()
+        if dones:
+            print("Episode return: ", ret)
+            ret = 0
+            obs = env.reset()
 else:
     vec_env_ = make_vec_env(env_id, n_envs=n_envs)
     vec_env = VecNormalize(vec_env_, norm_obs=True)
