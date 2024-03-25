@@ -46,6 +46,8 @@ if test:
 
     env_path = "/".join(load_path.split("/")[:2]) + "/vec_env_norm.pkl"
     env = VecNormalize.load(env_path, make_vec_env(env_id, n_envs=1))
+    env.norm_reward = False
+    env.training = False
     obs = env.reset()
     ret = 0
     for i in range(10000):
