@@ -42,12 +42,12 @@ mkdir(tb_path)
 save_callback = CheckpointCallback(1000000 / n_envs, tb_path + "/model_ppo")
 
 if test:
-    model = PPO.load(load_path)
-
     env_path = "/".join(load_path.split("/")[:2]) + "/vec_env_norm.pkl"
     env = VecNormalize.load(env_path, make_vec_env(env_id, n_envs=1))
-    env.norm_reward = False
     env.training = False
+    env.norm_reward = False
+    model = PPO.load(load_path, env=env)
+
     obs = env.reset()
     ret = 0
     for i in range(10000):
