@@ -1,4 +1,5 @@
 import sys
+from os import mkdir
 from datetime import datetime
 
 import gymnasium as gym
@@ -37,12 +38,14 @@ tb_path = "exp/" + tb_path
 test = "-t" in sys.argv
 n_envs = 8 if "-ne" not in sys.argv else int(num_env())
 
+mkdir(tb_path)
 save_callback = CheckpointCallback(1000000 / n_envs, tb_path + "/model_ppo")
 
 if test:
     model = PPO.load(load_path)
 
-    env = make_vec_env(env_id, n_envs=1)
+    env_path = "/".join(load_path.split("/")[:2]) + "/vec_env_norm.pkl"
+    env = VecNormalize.load(env_path, make_vec_env(env_id, n_envs=1))
     obs = env.reset()
     ret = 0
     for i in range(10000):
@@ -56,8 +59,8 @@ if test:
             ret = 0
             obs = env.reset()
 else:
-    vec_env_ = make_vec_env(env_id, n_envs=n_envs)
-    vec_env = VecNormalize(vec_env_, norm_obs=True)
+    vec_env = VecNormalize(make_vec_env(env_id, n_envs=n_envs), norm_obs=True)
+    vec_env.save(tb_path + "/vec_env_norm.pkl")
     if load_path is not None:
         model = PPO.load(load_path, env=vec_env)
     else:
