@@ -80,7 +80,7 @@ else:
             tensorboard_log=tb_path
         )
 
-    model.save(tb_path + "/model_ppo/model")
-    model.learn(total_timesteps=10000000, callback=save_callback)
-    model.save(tb_path + "/model_ppo/model")
     vec_env.save(tb_path + "/vec_env_norm.pkl")
+    model.learn(total_timesteps=10000000, callback=save_callback)
+    vec_env.save(tb_path + "/vec_env_norm.pkl")
+    model.save(tb_path + "/model_ppo/model")
