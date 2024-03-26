@@ -62,7 +62,6 @@ if test:
             obs = env.reset()
 else:
     vec_env = VecNormalize(make_vec_env(env_id, n_envs=n_envs), norm_obs=True)
-    vec_env.save(tb_path + "/vec_env_norm.pkl")
     if load_path is not None:
         model = PPO.load(load_path, env=vec_env)
     else:
@@ -81,4 +80,7 @@ else:
             tensorboard_log=tb_path
         )
 
+    model.save(tb_path + "/model_ppo/model")
     model.learn(total_timesteps=10000000, callback=save_callback)
+    model.save(tb_path + "/model_ppo/model")
+    vec_env.save(tb_path + "/vec_env_norm.pkl")
