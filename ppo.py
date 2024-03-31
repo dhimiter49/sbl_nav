@@ -39,10 +39,12 @@ test = "-t" in sys.argv
 n_envs = 8 if "-ne" not in sys.argv else int(num_env())
 
 mkdir(tb_path)
-save_callback = CheckpointCallback(1000000 / n_envs, tb_path + "/model_ppo")
+save_callback = CheckpointCallback(
+    1000000 / n_envs, tb_path + "/model_ppo", save_vecnormalize=True
+)
 
 if test:
-    env_path = "/".join(load_path.split("/")[:2]) + "/vec_env_norm.pkl"
+    env_path = "/".join(load_path.split("/")[:4]) + "/vec_env_norm.pkl"
     env = VecNormalize.load(env_path, make_vec_env(env_id, n_envs=1))
     env.training = False
     env.norm_reward = False
@@ -68,10 +70,11 @@ else:
         model = PPO(
             "MlpPolicy", vec_env,
             policy_kwargs={
-                "net_arch": {"pi": [256, 256], "vf": [256, 256]},
+                "net_arch": {"pi": [128, 128], "vf": [256, 256]},
                 "log_std_init": 1.0,
             },
             max_grad_norm=10.0,
+            # ent_coef=0.0002,
             clip_range=0.2,
             clip_range_vf=0.2,
             learning_rate=1e-4,
@@ -79,10 +82,4 @@ else:
             n_steps=16383 // n_envs,
             tensorboard_log=tb_path
         )
-
-    # Initial short training to get the environment stats
-    model.learn(total_timesteps=1000000, callback=save_callback)
-    vec_env.save(tb_path + "/vec_env_norm.pkl")
-
-    model.learn(total_timesteps=49000000, callback=save_callback)
-    vec_env.save(tb_path + "/vec_env_norm.pkl")
+    model.learn(total_timesteps=50000000, callback=save_callback)
