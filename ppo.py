@@ -65,10 +65,14 @@ if test:
             ret = 0
             obs = env.reset()
 else:
-    vec_env = VecNormalize(make_vec_env(env_id, n_envs=n_envs), norm_obs=True)
     if load_path is not None:
+        steps = load_path.split("/")[-1].split("_")[2]
+        env_path = "/".join(load_path.split("/")[:3]) +\
+            "/rl_model_vecnormalize_" + steps + "_steps.pkl"
+        vec_env = VecNormalize.load(env_path, make_vec_env(env_id, n_envs=1))
         model = PPO.load(load_path, env=vec_env)
     else:
+        vec_env = VecNormalize(make_vec_env(env_id, n_envs=n_envs), norm_obs=True)
         model = PPO(
             "MlpPolicy", vec_env,
             policy_kwargs={
