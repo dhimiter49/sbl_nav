@@ -40,7 +40,7 @@ n_envs = 8 if "-ne" not in sys.argv else int(num_env())
 
 mkdir(tb_path)
 save_callback = CheckpointCallback(
-    500000 / n_envs, tb_path + "/model_ppo", save_vecnormalize=True
+    200000 / n_envs, tb_path + "/model_ppo", save_vecnormalize=True
 )
 
 if test:
