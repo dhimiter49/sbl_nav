@@ -70,8 +70,8 @@ else:
         env_path = "/".join(load_path.split("/")[:3]) +\
             "/rl_model_vecnormalize_" + steps + "_steps.pkl"
         vec_env = VecNormalize.load(env_path, make_vec_env(env_id, n_envs=n_envs))
-        env.training = True
-        env.norm_reward = True
+        vec_env.training = True
+        vec_env.norm_reward = True
         model = PPO.load(load_path, env=vec_env)
     else:
         vec_env = VecNormalize(make_vec_env(env_id, n_envs=n_envs), norm_obs=True)
