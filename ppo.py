@@ -82,12 +82,16 @@ else:
                 "log_std_init": 1.0,
             },
             max_grad_norm=10.0,
-            # ent_coef=0.0002,
             clip_range=0.2,
             clip_range_vf=0.2,
             learning_rate=1e-4,
+            # ent_coef=0.0002,
+            # vf_coef=10,
+            # target_kl=0.01,
+            # gae_lambda=0.97,
+            # n_epochs=50,
             verbose=1,
-            n_steps=16383 // n_envs,
+            n_steps=16384 // n_envs,
             tensorboard_log=tb_path
         )
     model.learn(total_timesteps=50000000, callback=save_callback)
