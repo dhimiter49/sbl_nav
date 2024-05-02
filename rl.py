@@ -85,7 +85,7 @@ else:
                 "net_arch": {"pi": [128, 128], "vf": [256, 256]},
                 "log_std_init": 1.0,
             },
-            max_grad_norm=10.0,
+            # max_grad_norm=10.0,
             clip_range=0.2,
             clip_range_vf=0.2,
             learning_rate=1e-4,
