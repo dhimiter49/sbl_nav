@@ -5,11 +5,14 @@ from datetime import datetime
 import gymnasium as gym
 import fancy_gym
 
-from stable_baselines3 import PPO
+import stable_baselines3 as sbl
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.vec_env import VecNormalize
 from stable_baselines3.common.callbacks import CheckpointCallback
 
+
+def read_algo():
+    return sys.argv[sys.argv.index("-a") + 1]
 
 def read_env():
     return sys.argv[sys.argv.index("-e") + 1]
@@ -31,6 +34,7 @@ def num_env():
     return sys.argv[sys.argv.index("-ne") + 1]
 
 
+algo = "ppo" if "-a" not in sys.argv else read_algo()
 env_id = "fancy_ProDMP/Navigation-v0" if "-e" not in sys.argv else read_env()
 load_path = None if "-l" not in sys.argv else load_agent()
 tb_path = tb_time() if "-p" not in sys.argv else tb_custom()
@@ -40,7 +44,7 @@ n_envs = 8 if "-ne" not in sys.argv else int(num_env())
 
 mkdir(tb_path)
 save_callback = CheckpointCallback(
-    5000000 / n_envs, tb_path + "/model_ppo", save_vecnormalize=True
+    5000000 / n_envs, tb_path + "/model_" + algo, save_vecnormalize=True
 )
 
 if test:
@@ -50,7 +54,7 @@ if test:
     env = VecNormalize.load(env_path, make_vec_env(env_id, n_envs=1))
     env.training = False
     env.norm_reward = False
-    model = PPO.load(load_path, env=env)
+    model = getattr(sbl, algo.upper()).load(load_path, env=env)
 
     obs = env.reset()
     ret = 0
@@ -72,10 +76,10 @@ else:
         vec_env = VecNormalize.load(env_path, make_vec_env(env_id, n_envs=n_envs))
         vec_env.training = True
         vec_env.norm_reward = True
-        model = PPO.load(load_path, env=vec_env)
+        model = getattr(sbl, algo.upper()).load(load_path, env=vec_env)
     else:
         vec_env = VecNormalize(make_vec_env(env_id, n_envs=n_envs), norm_obs=True)
-        model = PPO(
+        model = getattr(sbl, algo.upper())(
             "MlpPolicy", vec_env,
             policy_kwargs={
                 "net_arch": {"pi": [128, 128], "vf": [256, 256]},
