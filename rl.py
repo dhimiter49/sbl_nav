@@ -4,6 +4,7 @@ from datetime import datetime
 
 import gymnasium as gym
 import fancy_gym
+import numpy as np
 
 import stable_baselines3 as sbl
 from stable_baselines3.common.env_util import make_vec_env
@@ -13,6 +14,7 @@ from stable_baselines3.common.callbacks import CheckpointCallback
 
 def read_algo():
     return sys.argv[sys.argv.index("-a") + 1]
+
 
 def read_env():
     return sys.argv[sys.argv.index("-e") + 1]
@@ -41,6 +43,7 @@ tb_path = tb_time() if "-p" not in sys.argv else tb_custom()
 tb_path = "exp/" + tb_path
 test = "-t" in sys.argv
 n_envs = 8 if "-ne" not in sys.argv else int(num_env())
+np.random.seed()
 
 mkdir(tb_path)
 save_callback = CheckpointCallback(
@@ -96,6 +99,7 @@ else:
             # n_epochs=50,
             verbose=1,
             n_steps=16384 // n_envs,
-            tensorboard_log=tb_path
+            tensorboard_log=tb_path,
+            seed=np.random.randint(1000000),
         )
     model.learn(total_timesteps=50000000, callback=save_callback)
