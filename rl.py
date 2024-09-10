@@ -2,6 +2,7 @@ import sys
 from os import mkdir
 from datetime import datetime
 
+import socnavgym
 import gymnasium as gym
 import fancy_gym
 import numpy as np
@@ -54,7 +55,11 @@ if test:
     steps = load_path.split("/")[-1].split("_")[2]
     env_path = "/".join(load_path.split("/")[:3]) +\
         "/rl_model_vecnormalize_" + steps + "_steps.pkl"
-    env = VecNormalize.load(env_path, make_vec_env(env_id, n_envs=1))
+    env = VecNormalize.load(env_path, make_vec_env(
+        env_id,
+        n_envs=1,
+        # env_kwargs={"config": "./socnav_env_configs/exp1_no_sngnn.yaml"}
+    ))
     env.training = False
     env.norm_reward = False
     model = getattr(sbl, algo.upper()).load(load_path, env=env)
@@ -76,29 +81,42 @@ else:
         steps = load_path.split("/")[-1].split("_")[2]
         env_path = "/".join(load_path.split("/")[:3]) +\
             "/rl_model_vecnormalize_" + steps + "_steps.pkl"
-        vec_env = VecNormalize.load(env_path, make_vec_env(env_id, n_envs=n_envs))
+        vec_env = VecNormalize.load(env_path, make_vec_env(
+            env_id,
+            n_envs=n_envs,
+            # env_kwargs={"config": "./socnav_env_configs/exp1_no_sngnn.yaml"}
+        ))
         vec_env.training = True
         vec_env.norm_reward = True
         model = getattr(sbl, algo.upper()).load(load_path, env=vec_env)
     else:
-        vec_env = VecNormalize(make_vec_env(env_id, n_envs=n_envs), norm_obs=True)
-        model = getattr(sbl, algo.upper())(
-            "MlpPolicy", vec_env,
-            policy_kwargs={
+        vec_env = VecNormalize(make_vec_env(
+            env_id,
+            n_envs=n_envs,
+            # env_kwargs={"config": "./socnav_env_configs/exp1_no_sngnn.yaml"}
+        ),
+            norm_obs=True
+        )
+        kwargs = {
+            "policy_kwargs": {
                 "net_arch": {"pi": [128, 128], "vf": [256, 256]},
                 "log_std_init": 1.0,
             },
             # max_grad_norm=10.0,
-            clip_range=0.2,
-            clip_range_vf=0.2,
-            learning_rate=1e-4,
+            "clip_range": 0.2,
+            "clip_range_vf": 0.2,
+            "learning_rate": 1e-4,
             # ent_coef=0.0002,
             # vf_coef=10,
             # target_kl=0.01,
             # gae_lambda=0.97,
             # n_epochs=50,
+            "n_steps": 16384 // n_envs,
+        } if algo.upper() == "PPO" else {}
+        model = getattr(sbl, algo.upper())(
+            "MlpPolicy", vec_env,
+            **kwargs,
             verbose=1,
-            n_steps=16384 // n_envs,
             tensorboard_log=tb_path,
             seed=np.random.randint(1000000),
         )
