@@ -35,9 +35,14 @@ def read_env():
     return sys.argv[sys.argv.index("-e") + 1]
 
 
+def load_agent():
+    return sys.argv[sys.argv.index("-l") + 1]
+
+
 env_id = "fancy_ProDMP/Navigation-v0" if "-e" not in sys.argv else read_env()
 algo = "ppo" if "-a" not in sys.argv else read_algo()
 env = gym.make(env_id)
+load_path = None if "-l" not in sys.argv else load_agent()
 dataset = np.load('dataset.npy')
 train_size = int(0.8 * len(dataset))
 test_size = len(dataset) - train_size
@@ -51,7 +56,12 @@ train_expert_dataset, test_expert_dataset = random_split(
     dataset, [train_size, test_size]
 )
 
-student = getattr(sbl, algo.upper())("MlpPolicy", env, seed=np.random.randint(1000000))
+if load_path is not None:
+    student = getattr(sbl, algo.upper()).load(load_path, env)
+else:
+    student = getattr(sbl, algo.upper())(
+        "MlpPolicy", env, seed=np.random.randint(1000000)
+    )
 
 
 def pretrain_agent(
@@ -75,6 +85,8 @@ def pretrain_agent(
         criterion = nn.CrossEntropyLoss()
     # Extract initial policy
     model = student.policy.to(device)
+
+
     def train(model, device, train_loader, optimizer):
         model.train()
         for batch_idx, (data, target) in enumerate(train_loader):
@@ -93,6 +105,7 @@ def pretrain_agent(
             loss = criterion(action_prediction, target)
             loss.backward()
             optimizer.step()
+
 
     def test(model, device, test_loader):
         model.eval()
@@ -136,7 +149,7 @@ pretrain_agent(
     student,
     epochs=1000,
     scheduler_gamma=0.7,
-    learning_rate=1.0,
+    learning_rate=0.001,
     log_interval=100,
     no_cuda=True,
     seed=1,
