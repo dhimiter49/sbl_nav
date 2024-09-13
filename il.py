@@ -134,7 +134,7 @@ print(f"Mean reward = {mean_reward} +/- {std_reward}")
 
 pretrain_agent(
     student,
-    epochs=3,
+    epochs=1000,
     scheduler_gamma=0.7,
     learning_rate=1.0,
     log_interval=100,
@@ -147,4 +147,5 @@ pretrain_agent(
 mean_reward, std_reward = evaluate_policy(
     student, env, n_eval_episodes=10
 )
+student.save("student")
 print(f"Mean reward = {mean_reward} +/- {std_reward}")
