@@ -1,5 +1,5 @@
 import sys
-from os import mkdir
+from os import makedirs
 from datetime import datetime
 
 import socnavgym
@@ -41,12 +41,12 @@ algo = "ppo" if "-a" not in sys.argv else read_algo()
 env_id = "fancy_ProDMP/Navigation-v0" if "-e" not in sys.argv else read_env()
 load_path = None if "-l" not in sys.argv else load_agent()
 tb_path = tb_time() if "-p" not in sys.argv else tb_custom()
-tb_path = "exp/" + tb_path
+tb_path = "exp/" + env_id.replace("fancy/", "") + "/" + algo + "/" + tb_path
 test = "-t" in sys.argv
 n_envs = 8 if "-ne" not in sys.argv else int(num_env())
 np.random.seed()
 
-mkdir(tb_path)
+makedirs(tb_path, exist_ok=True)
 save_callback = CheckpointCallback(
     5000000 / n_envs, tb_path + "/model_" + algo, save_vecnormalize=True
 )
@@ -100,7 +100,6 @@ else:
         )
         kwargs = {
             "policy_kwargs": {
-                "net_arch": {"pi": [128, 128], "vf": [256, 256]},
                 "log_std_init": 1.0,
             },
             # max_grad_norm=10.0,
