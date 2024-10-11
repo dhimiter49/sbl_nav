@@ -46,10 +46,7 @@ test = "-t" in sys.argv
 n_envs = 8 if "-ne" not in sys.argv else int(num_env())
 np.random.seed()
 
-makedirs(tb_path, exist_ok=True)
-save_callback = CheckpointCallback(
-    5000000 / n_envs, tb_path + "/model_" + algo, save_vecnormalize=True
-)
+makedirs(tb_path, exist_ok=True) if not test else None
 
 if test:
     level = load_path.count("/")
@@ -78,6 +75,9 @@ if test:
             ret = 0
             obs = env.reset()
 else:
+    save_callback = CheckpointCallback(
+        5000000 / n_envs, tb_path + "/model_" + algo, save_vecnormalize=True
+    )
     if load_path is not None:
         steps = load_path.split("/")[-1].split("_")[2]
         env_path = "/".join(load_path.split("/")[:3]) +\
