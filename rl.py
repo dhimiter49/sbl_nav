@@ -64,23 +64,34 @@ if test:
 
     obs = env.reset()
     ret = 0
-    for i in range(10000):
+    rets = []
+    counter = 0
+    counter_ = 0
+    while counter_ < 23:
         action, _ = model.predict(obs)
         obs, rewards, dones, info = env.step(action)
         env.render()
+        # input()
         ret += rewards
 
         if dones:
-            print("Episode return: ", ret)
+            # print("Episode return: ", ret)
+            rets.append(ret)
+            counter += 1 if ret < -10 else 0
+            counter_ += 1
+            print(counter_)
             ret = 0
             obs = env.reset()
+    print("episodes", counter_)
+    print("mean", np.mean(rets))
 else:
     save_callback = CheckpointCallback(
         5000000 / n_envs, tb_path + "/model_" + algo, save_vecnormalize=True
     )
     if load_path is not None:
+        level = load_path.count("/")
         steps = load_path.split("/")[-1].split("_")[2]
-        env_path = "/".join(load_path.split("/")[:3]) +\
+        env_path = "/".join(load_path.split("/")[:level]) +\
             "/rl_model_vecnormalize_" + steps + "_steps.pkl"
         vec_env = VecNormalize.load(env_path, make_vec_env(
             env_id,
@@ -111,7 +122,7 @@ else:
             # target_kl=0.01,
             # gae_lambda=0.97,
             # n_epochs=50,
-            "n_steps": 16384 // n_envs,
+            "n_steps": 65536 // n_envs,
         } if algo.upper() == "PPO" else {}
         model = getattr(sbl, algo.upper())(
             "MlpPolicy", vec_env,
