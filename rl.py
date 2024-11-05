@@ -124,8 +124,13 @@ else:
             # target_kl=0.01,
             # gae_lambda=0.97,
             # n_epochs=50,
-            "n_steps": 65536 // n_envs,
+            "n_steps": 131072 // n_envs,
         } if algo.upper() == "PPO" else {}
+        if algo.upper() == "PPO" and "Seq" in env_id:
+            kwargs["policy_kwargs"]["features_extractor_class"] = TransformerFE
+            kwargs["policy_kwargs"]["features_extractor_kwargs"] = {
+                "feature_dim": 16, "input_dim": 2,
+            }
         model = getattr(sbl, algo.upper())(
             "MlpPolicy", vec_env,
             **kwargs,

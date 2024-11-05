@@ -7,7 +7,9 @@ from torch_geometric.nn import MLP
 
 
 class TransformerFE(BaseFeaturesExtractor):
-    def __init__(self, observation_space: gym.Space, input_dim: int = 2, feature_dim: int = 16) -> None:
+    def __init__(
+        self, observation_space: gym.Space, input_dim: int = 2, feature_dim: int = 16
+    ) -> None:
         super().__init__(observation_space, feature_dim)
         self.input_dim = input_dim
         self.embedding = nn.Linear(input_dim, feature_dim)
