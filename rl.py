@@ -12,6 +12,8 @@ from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.vec_env import VecNormalize
 from stable_baselines3.common.callbacks import CheckpointCallback
 
+from transformer_feature_extractor import TransformerFE
+
 
 def read_algo():
     return sys.argv[sys.argv.index("-a") + 1]
