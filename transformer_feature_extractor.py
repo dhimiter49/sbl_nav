@@ -3,7 +3,6 @@ from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 import gymnasium as gym
 import torch
 import torch.nn as nn
-from torch_geometric.nn import MLP
 
 
 class TransformerFE(BaseFeaturesExtractor):
@@ -20,9 +19,17 @@ class TransformerFE(BaseFeaturesExtractor):
             dropout=0.1,
             batch_first=True,
         )
-        self.fc_out = MLP([
+        self.fc_out = nn.Linear(
             self._observation_space.shape[0] // input_dim * feature_dim, feature_dim
-        ], norm=None, act='tanh')
+        )
+        self.init_weights()
+
+
+    def init_weights(self):
+        initrange = 0.1
+        self.embedding.weight.data.uniform_(-initrange, initrange)
+        self.fc_out.bias.data.zero_()
+        self.fc_out.weight.data.uniform_(-initrange, initrange)
 
 
     def forward(self, observations: torch.Tensor) -> torch.Tensor:
