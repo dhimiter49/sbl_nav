@@ -27,6 +27,10 @@ def load_agent():
     return sys.argv[sys.argv.index("-l") + 1]
 
 
+def read_note():
+    return sys.argv[sys.argv.index("-n") + 1]
+
+
 def tb_time():
     return datetime.now().strftime("%d_%m_%Y-%H:%M:%S")
 
@@ -40,6 +44,7 @@ def num_env():
 
 
 algo = "ppo" if "-a" not in sys.argv else read_algo()
+note = "Experiment" if "-n" not in sys.argv else read_note()
 env_id = "fancy_ProDMP/Navigation-v0" if "-e" not in sys.argv else read_env()
 load_path = None if "-l" not in sys.argv else load_agent()
 tb_path = tb_time() if "-p" not in sys.argv else tb_custom()
@@ -49,6 +54,10 @@ n_envs = 8 if "-ne" not in sys.argv else int(num_env())
 np.random.seed()
 
 makedirs(tb_path, exist_ok=True) if not test else None
+if not test:
+    file_note = open(tb_path + "/note", "a")
+    file_note.write(note)
+    file_note.close()
 
 if test:
     level = load_path.count("/")
