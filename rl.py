@@ -6,6 +6,7 @@ import socnavgym
 import gymnasium as gym
 import fancy_gym
 import numpy as np
+import uuid
 
 import stable_baselines3 as sbl
 from stable_baselines3.common.env_util import make_vec_env
@@ -32,7 +33,7 @@ def read_note():
 
 
 def tb_time():
-    return datetime.now().strftime("%d_%m_%Y-%H:%M:%S")
+    return datetime.now().strftime("%d_%m_%Y-%H:%M:%S") + "-" + str(uuid.uuid4().int)[-4:]
 
 
 def tb_custom():
