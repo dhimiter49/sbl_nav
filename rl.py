@@ -138,7 +138,7 @@ else:
         if algo.upper() == "PPO" and "Seq" in env_id:
             kwargs["policy_kwargs"]["features_extractor_class"] = TransformerFE
             kwargs["policy_kwargs"]["features_extractor_kwargs"] = {
-                "feature_dim": 16, "input_dim": 2,
+                "feature_dim": 16, "input_dim": 2, "n_head": 2, "dim_feedforward": 64
             }
         model = getattr(sbl, algo.upper())(
             "MlpPolicy", vec_env,

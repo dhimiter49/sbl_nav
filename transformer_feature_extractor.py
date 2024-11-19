@@ -7,15 +7,20 @@ import torch.nn as nn
 
 class TransformerFE(BaseFeaturesExtractor):
     def __init__(
-        self, observation_space: gym.Space, input_dim: int = 2, feature_dim: int = 16
+        self,
+        observation_space: gym.Space,
+        input_dim: int = 2,
+        feature_dim: int = 16,
+        n_head: int = 2,
+        dim_feedforward=64
     ) -> None:
         super().__init__(observation_space, feature_dim)
         self.input_dim = input_dim
         self.embedding = nn.Linear(input_dim, feature_dim)
         self.transformer_encoder = nn.TransformerEncoderLayer(
             d_model=feature_dim,
-            nhead=2,
-            dim_feedforward=64,
+            nhead=n_head,
+            dim_feedforward=dim_feedforward,
             dropout=0.1,
             batch_first=True,
         )
