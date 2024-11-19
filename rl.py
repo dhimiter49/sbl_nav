@@ -33,7 +33,7 @@ def read_note():
 
 
 def tb_time():
-    return datetime.now().strftime("%d_%m_%Y-%H:%M:%S") + str(uuid.uuid4().int)[-4:]
+    return datetime.now().strftime("%d_%m_%Y-%H:%M:%S") + "-" + str(uuid.uuid4().int)[-4:]
 
 
 def tb_custom():
