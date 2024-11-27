@@ -51,6 +51,7 @@ load_path = None if "-l" not in sys.argv else load_agent()
 tb_path = tb_time() if "-p" not in sys.argv else tb_custom()
 tb_path = "exp/" + env_id.replace("fancy/", "") + "/" + algo + "/" + tb_path
 test = "-t" in sys.argv
+render = "-r" in sys.argv
 n_envs = 8 if "-ne" not in sys.argv else int(num_env())
 np.random.seed()
 
@@ -82,7 +83,7 @@ if test:
     while counter_ < 23:
         action, _ = model.predict(obs)
         obs, rewards, dones, info = env.step(action)
-        env.render()
+        env.render() if render else None
         # input()
         ret += rewards
 
