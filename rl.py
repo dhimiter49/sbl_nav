@@ -136,8 +136,10 @@ else:
             # gae_lambda=0.97,
             # n_epochs=50,
             "n_steps": 131072 // n_envs,
-        } if algo.upper() == "PPO" else {}
-        if algo.upper() == "PPO" and "Seq" in env_id:
+        } if algo.upper() == "PPO" else {
+            "policy_kwargs": {}
+        }
+        if "Seq" in env_id:
             kwargs["policy_kwargs"]["features_extractor_class"] = TransformerFE
             kwargs["policy_kwargs"]["features_extractor_kwargs"] = {
                 "feature_dim": 16, "input_dim": 2, "n_head": 2, "dim_feedforward": 64
