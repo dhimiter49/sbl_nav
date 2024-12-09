@@ -2,7 +2,7 @@ import sys
 from os import makedirs
 from datetime import datetime
 
-import socnavgym
+# import socnavgym
 import gymnasium as gym
 import fancy_gym
 import numpy as np
@@ -10,7 +10,8 @@ import uuid
 
 import stable_baselines3 as sbl
 from stable_baselines3.common.env_util import make_vec_env
-from stable_baselines3.common.vec_env import VecNormalize
+from stable_baselines3.common.monitor import Monitor
+from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecNormalize
 from stable_baselines3.common.callbacks import CheckpointCallback
 
 from transformer_feature_extractor import TransformerFE
@@ -44,6 +45,23 @@ def num_env():
     return sys.argv[sys.argv.index("-ne") + 1]
 
 
+def make_env(env_id: str, **kwargs) -> callable:
+    """
+    returns callable to create gym environment or monitor
+
+    Args:
+        env_id: gym env ID
+
+    Returns: callable for env constructor
+    """
+    def _get_env():
+        env = gym.make(env_id)
+
+        return Monitor(env)
+
+    return _get_env
+
+
 algo = "ppo" if "-a" not in sys.argv else read_algo()
 note = "Experiment" if "-n" not in sys.argv else read_note()
 env_id = "fancy_ProDMP/Navigation-v0" if "-e" not in sys.argv else read_env()
@@ -54,6 +72,8 @@ test = "-t" in sys.argv
 render = "-r" in sys.argv
 n_envs = 8 if "-ne" not in sys.argv else int(num_env())
 np.random.seed()
+vec_env_fun = SubprocVecEnv if n_envs > 1 else DummyVecEnv
+env_fns = [make_env(env_id) for i in range(n_envs)]
 
 makedirs(tb_path, exist_ok=True) if not test else None
 if not test:
@@ -115,13 +135,7 @@ else:
         vec_env.norm_reward = True
         model = getattr(sbl, algo.upper()).load(load_path, env=vec_env)
     else:
-        vec_env = VecNormalize(make_vec_env(
-            env_id,
-            n_envs=n_envs,
-            # env_kwargs={"config": "./socnav_env_configs/exp1_no_sngnn.yaml"}
-        ),
-            norm_obs=True
-        )
+        vec_env = VecNormalize(vec_env_fun(env_fns), norm_obs=True)
         kwargs = {
             "policy_kwargs": {
                 "log_std_init": 1.0,
