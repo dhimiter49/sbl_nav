@@ -72,6 +72,7 @@ def main():
     test = "-t" in sys.argv
     render = "-r" in sys.argv
     n_envs = 8 if "-ne" not in sys.argv else int(num_env())
+    n_envs = 1 if test else n_envs
     np.random.seed()
     vec_env_fun = SubprocVecEnv if n_envs > 1 else DummyVecEnv
     env_fns = [make_env(env_id) for i in range(n_envs)]
@@ -87,11 +88,7 @@ def main():
         steps = load_path.split("/")[-1].split("_")[2]
         env_path = "/".join(load_path.split("/")[:level]) +\
             "/rl_model_vecnormalize_" + steps + "_steps.pkl"
-        env = VecNormalize.load(env_path, make_vec_env(
-            env_id,
-            n_envs=1,
-            # env_kwargs={"config": "./socnav_env_configs/exp1_no_sngnn.yaml"}
-        ))
+        env = VecNormalize.load(env_path, vec_env_fun(env_fns))
         env.training = False
         env.norm_reward = False
         model = getattr(sbl, algo.upper()).load(load_path, env=env)
@@ -127,11 +124,7 @@ def main():
             steps = load_path.split("/")[-1].split("_")[2]
             env_path = "/".join(load_path.split("/")[:level]) +\
                 "/rl_model_vecnormalize_" + steps + "_steps.pkl"
-            vec_env = VecNormalize.load(env_path, make_vec_env(
-                env_id,
-                n_envs=n_envs,
-                # env_kwargs={"config": "./socnav_env_configs/exp1_no_sngnn.yaml"}
-            ))
+            vec_env = VecNormalize.load(env_path, vec_env_fun(env_fns))
             vec_env.training = True
             vec_env.norm_reward = True
             model = getattr(sbl, algo.upper()).load(load_path, env=vec_env)
