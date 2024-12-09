@@ -68,7 +68,8 @@ def main():
     env_id = "fancy_ProDMP/Navigation-v0" if "-e" not in sys.argv else read_env()
     load_path = None if "-l" not in sys.argv else load_agent()
     tb_path = tb_time() if "-p" not in sys.argv else tb_custom()
-    tb_path = "exp/" + env_id.replace("fancy/", "") + "/" + algo + "/" + tb_path
+    tb_path = "exp/" + env_id.replace("fancy/", "").replace("fancy_ProDMP/", "") +\
+        "/" + algo + "/" + tb_path
     test = "-t" in sys.argv
     render = "-r" in sys.argv
     n_envs = 8 if "-ne" not in sys.argv else int(num_env())
