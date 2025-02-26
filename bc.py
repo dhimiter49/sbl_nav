@@ -19,7 +19,7 @@ from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecNorm
 from imitation.algorithms import bc
 from imitation.data import types
 from imitation.data import rollout
-from imitation.util import save_policy
+import imitation.util as util
 # from imitation.data.wrappers import RolloutInfoWrapper
 # from imitation.policies.serialize import load_policy
 # from imitation.util.util import make_vec_env
@@ -173,7 +173,10 @@ def main():
         for i in range(log_every):
             bc_trainer.train(n_epochs=n_epochs)
             reward = evaluate_policy(bc_trainer.policy, vec_env, 1000)
-            save_policy(bc_trainer.policy, "")
+            util.save_policy(
+                bc_trainer.policy,
+                tb_path + "/bc_policy_" + str((log_every + 1) * n_epochs) + ".pth"
+            )
             print("Reward: ", reward)
 
 
