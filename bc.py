@@ -1,4 +1,3 @@
-
 import sys
 from os import makedirs
 from datetime import datetime
@@ -9,20 +8,19 @@ import fancy_gym
 import numpy as np
 import uuid
 
-import stable_baselines3 as sbl
-from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.monitor import Monitor
-from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecNormalize
+from stable_baselines3 import PPO
+from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
 # from stable_baselines3.common.callbacks import CheckpointCallback
 
 # from transformer_feature_extractor import TransformerFE
+from imitation.algorithms.adversarial.gail import GAIL
 from imitation.algorithms import bc
 from imitation.data import types
 from imitation.data import rollout
 from imitation.util.util import save_policy
-# from imitation.data.wrappers import RolloutInfoWrapper
-# from imitation.policies.serialize import load_policy
-# from imitation.util.util import make_vec_env
+from imitation.rewards.reward_nets import BasicRewardNet
+from imitation.util.networks import RunningNorm
 from stable_baselines3.common.evaluation import evaluate_policy
 
 
@@ -83,6 +81,7 @@ def main():
     test = "-t" in sys.argv
     render = "-r" in sys.argv
     n_envs = 8 if "-ne" not in sys.argv else int(num_env())
+    n_envs = 1 if test else n_envs
     np.random.seed()
     vec_env_fun = SubprocVecEnv if n_envs > 1 else DummyVecEnv
     env_fns = [make_env(env_id) for i in range(n_envs)]
@@ -162,22 +161,59 @@ def main():
         dataset_trajs = rollout.flatten_trajectories(dataset_trajs)
         print("Dataset length", len(dataset_trajs.obs))
 
-        bc_trainer = bc.BC(
-            observation_space=vec_env.observation_space,
-            action_space=vec_env.action_space,
-            demonstrations=dataset_trajs,
-            rng=rng,
-            batch_size=65536,
-            optimizer_kwargs={"lr": 5e-4},
-        )
-        for i in range(log_every):
-            bc_trainer.train(n_epochs=n_epochs)
-            reward = evaluate_policy(bc_trainer.policy, vec_env, 1000)
-            save_policy(
-                bc_trainer.policy,
-                tb_path + "/bc_policy_" + str((i + 1) * n_epochs) + ".pth"
+        if algo == "bc":
+            bc_trainer = bc.BC(
+                observation_space=vec_env.observation_space,
+                action_space=vec_env.action_space,
+                demonstrations=dataset_trajs,
+                rng=rng,
+                batch_size=65536,
+                optimizer_kwargs={"lr": 5e-4},
             )
-            print("Reward: ", reward)
+            for i in range(log_every):
+                bc_trainer.train(n_epochs=n_epochs)
+                reward = evaluate_policy(bc_trainer.policy, vec_env, 1000)
+                save_policy(
+                    bc_trainer.policy,
+                    tb_path + "/bc_policy_" + str((i + 1) * n_epochs) + ".pth"
+                )
+                print("Reward: ", reward)
+        elif algo == "gail":
+            learner = PPO(
+                "MlpPolicy",
+                env=vec_env,
+                batch_size=64,
+                ent_coef=0.0,
+                learning_rate=0.0004,
+                gamma=0.95,
+                n_epochs=5,
+                seed=np.random.randint(1000000),
+            )
+            reward_net = BasicRewardNet(
+                observation_space=vec_env.observation_space,
+                action_space=vec_env.action_space,
+                normalize_input_layer=RunningNorm,
+            )
+            gail_trainer = GAIL(
+                demonstrations=dataset_trajs,
+                demo_batch_size=1024 * 16,
+                gen_replay_buffer_capacity=512,
+                n_disc_updates_per_round=8,
+                venv=vec_env,
+                gen_algo=learner,
+                reward_net=reward_net,
+                allow_variable_horizon=True,
+            )
+            for i in range(log_every):
+                gail_trainer.train(10000)
+                reward = evaluate_policy(gail_trainer.policy, vec_env, 1000)
+                save_policy(
+                    gail_trainer.policy,
+                    tb_path + "/bc_policy_" + str((i + 1) * n_epochs) + ".pth"
+                )
+                print("Reward: ", reward)
+        else:
+            print("Error: algorithm name not recognized!")
 
 
 if __name__ == '__main__':
