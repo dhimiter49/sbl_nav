@@ -9,12 +9,12 @@ import numpy as np
 import uuid
 
 import stable_baselines3 as sbl
-from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecNormalize
 from stable_baselines3.common.callbacks import CheckpointCallback
 
 from transformer_feature_extractor import TransformerFE
+from cnn1d_feature_extractor import CNN1dFE
 
 
 def read_algo():
@@ -45,6 +45,10 @@ def num_env():
     return sys.argv[sys.argv.index("-ne") + 1]
 
 
+def architecture():
+    return sys.argv[sys.argv.index("-ar") + 1]
+
+
 def make_env(env_id: str, **kwargs) -> callable:
     """
     returns callable to create gym environment or monitor
@@ -67,6 +71,7 @@ def main():
     note = "Experiment" if "-n" not in sys.argv else read_note()
     env_id = "fancy_ProDMP/Navigation-v0" if "-e" not in sys.argv else read_env()
     load_path = None if "-l" not in sys.argv else load_agent()
+    arch = "MLP" if "-ar" not in sys.argv else architecture()
     tb_path = tb_time() if "-p" not in sys.argv else tb_custom()
     tb_path = "exp/" + env_id.replace("fancy/", "").replace("fancy_ProDMP/", "") +\
         "/" + algo + "/" + tb_path
@@ -153,6 +158,11 @@ def main():
                 kwargs["policy_kwargs"]["features_extractor_kwargs"] = {
                     "feature_dim": 16, "input_dim": 2, "n_head": 2, "dim_feedforward": 64
                 }
+            if arch == "1dcnn":
+                kwargs["policy_kwargs"]["features_extractor_class"] = CNN1dFE
+                # kwargs["policy_kwargs"]["features_extractor_kwargs"] = {
+                #     "channels": 4, "kernel_size": 5, "non_lidar_dim": 4, "one_cnn": True
+                # }
             model = getattr(sbl, algo.upper())(
                 "MlpPolicy", vec_env,
                 **kwargs,
