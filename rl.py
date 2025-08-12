@@ -116,7 +116,6 @@ def main():
                 rets.append(ret)
                 counter += 1 if ret < -10 else 0
                 counter_ += 1
-                print(counter_)
                 ret = 0
                 obs = env.reset()
         print("episodes", counter_)

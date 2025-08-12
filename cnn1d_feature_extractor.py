@@ -92,7 +92,6 @@ class CNN1dFE(BaseFeaturesExtractor):
             )
 
 
-
     def forward(self, observations: torch.Tensor) -> torch.Tensor:
         x = observations
         if not self.one_cnn:
