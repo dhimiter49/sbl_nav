@@ -23,6 +23,9 @@ def read_algo():
     return sys.argv[sys.argv.index("-a") + 1]
 
 
+def read_exp_name():
+    return sys.argv[sys.argv.index("-name") + 1]
+
 def read_env():
     return sys.argv[sys.argv.index("-e") + 1]
 
@@ -74,6 +77,7 @@ def main():
     env_id = "fancy_ProDMP/Navigation-v0" if "-e" not in sys.argv else read_env()
     load_path = None if "-l" not in sys.argv else load_agent()
     arch = "MLP" if "-ar" not in sys.argv else architecture()
+    exp_name = algo if "-name" not in sys.argv else read_exp_name()
     tb_path = tb_time() if "-p" not in sys.argv else tb_custom()
     tb_path = "exp/" + env_id.replace("fancy/", "").replace("fancy_ProDMP/", "") +\
         "/" + algo + "/" + tb_path
@@ -132,8 +136,8 @@ def main():
             freezing_instances,
             avg_ttg,
             success_rate
-        ) = env.env_method("stats")[0]
-        exp_name = "sac_no_cnn.csv"
+        ) = env.env_method("stats")[0]  # only one environment in testing
+        exp_name = exp_name + ".csv"
         path = Path.home() / "Documents" / "RAM" / "results" / exp_name
         has_header = False
         if path.is_file():
