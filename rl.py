@@ -1,4 +1,6 @@
 import sys
+import csv
+from pathlib import Path
 from os import makedirs
 from datetime import datetime
 
@@ -120,6 +122,45 @@ def main():
                 obs = env.reset()
         print("episodes", counter_)
         print("mean", np.mean(rets))
+        print("Stats:")
+        (
+            col_rate,
+            col_speed,
+            col_agent_speed,
+            avg_intersect_area,
+            avg_intersect_area_percent,
+            freezing_instances,
+            avg_ttg,
+            success_rate
+        ) = env.env_method("stats")[0]
+        exp_name = "sac_no_cnn.csv"
+        path = Path.home() / "Documents" / "RAM" / "results" / exp_name
+        has_header = False
+        if path.is_file():
+            with open(path, 'r', newline='') as csvfile:
+                sniffer = csv.Sniffer()
+                has_header = sniffer.has_header(csvfile.read(2048))
+        with open(path, 'a', newline='') as csvfile:
+            fieldnames = [
+                'return', 'ttg', 'success_rate',
+                'col_rate', 'col_speed', 'col_agent_speed',
+                'col_intersection_area', 'col_intersection_percent',
+                'freezing_instances'
+            ]
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            if not has_header:
+                writer.writeheader()
+            writer.writerow({
+                "return": np.mean(rets),
+                "ttg": avg_ttg,
+                "success_rate": success_rate,
+                "col_rate": col_rate,
+                "col_speed": col_speed,
+                "col_agent_speed": col_agent_speed,
+                "col_intersection_area": avg_intersect_area,
+                "col_intersection_percent": avg_intersect_area_percent,
+                "freezing_instances": freezing_instances,
+            })
     else:
         save_callback = CheckpointCallback(
             5000000 / n_envs, tb_path + "/model_" + algo, save_vecnormalize=True
