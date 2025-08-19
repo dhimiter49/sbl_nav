@@ -14,6 +14,7 @@ import stable_baselines3 as sbl
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecNormalize
 from stable_baselines3.common.callbacks import CheckpointCallback
+from curriculum_callback import CurriculumCallback
 
 from transformer_feature_extractor import TransformerFE
 from cnn1d_feature_extractor import CNN1dFE
@@ -30,8 +31,12 @@ def read_env():
     return sys.argv[sys.argv.index("-e") + 1]
 
 
-def load_agent():
+def read_agent():
     return sys.argv[sys.argv.index("-l") + 1]
+
+
+def read_curriculum():
+    return int(sys.argv[sys.argv.index("-c") + 1])
 
 
 def read_note():
@@ -75,7 +80,8 @@ def main():
     algo = "ppo" if "-a" not in sys.argv else read_algo()
     note = "Experiment" if "-n" not in sys.argv else read_note()
     env_id = "fancy_ProDMP/Navigation-v0" if "-e" not in sys.argv else read_env()
-    load_path = None if "-l" not in sys.argv else load_agent()
+    load_path = None if "-l" not in sys.argv else read_agent()
+    curriculum = 0 if "-c" not in sys.argv else read_curriculum()
     arch = "MLP" if "-ar" not in sys.argv else architecture()
     exp_name = algo if "-name" not in sys.argv else read_exp_name()
     tb_path = tb_time() if "-p" not in sys.argv else tb_custom()
@@ -166,9 +172,12 @@ def main():
                 "freezing_instances": freezing_instances,
             })
     else:
-        save_callback = CheckpointCallback(
+        callbacks = []
+        callbacks.append(CheckpointCallback(
             5000000 / n_envs, tb_path + "/model_" + algo, save_vecnormalize=True
-        )
+        ))
+        if curriculum > 0:
+            callbacks.append(CurriculumCallback(curriculum))
         if load_path is not None:
             level = load_path.count("/")
             steps = load_path.split("/")[-1].split("_")[2]
@@ -214,7 +223,7 @@ def main():
                 tensorboard_log=tb_path,
                 seed=np.random.randint(1000000),
             )
-        model.learn(total_timesteps=50000000, callback=save_callback)
+        model.learn(total_timesteps=50000000, callback=callbacks)
 
 
 if __name__ == '__main__':
