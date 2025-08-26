@@ -65,7 +65,7 @@ else:
 
 
 def pretrain_agent(
-    mdoel,
+    model,
     batch_size=64,
     epochs=1000,
     scheduler_gamma=0.7,

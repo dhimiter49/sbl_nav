@@ -9,6 +9,7 @@ import gymnasium as gym
 import fancy_gym
 import numpy as np
 import uuid
+from tqdm import tqdm
 
 import stable_baselines3 as sbl
 from stable_baselines3.common.monitor import Monitor
@@ -116,18 +117,26 @@ def main():
         rets = []
         counter = 0
         counter_ = 0
-        while counter_ < 23:
+        steps = 1000
+        progress_bar = tqdm(total=steps, desc="Processing")
+        while counter_ < steps:
+            if "Inter" in env_id:
+                n_crowd = 8
+                obs = obs.reshape(n_crowd, -1)
             action, _ = model.predict(obs)
-            obs, rewards, dones, info = env.step(action)
+            obs, rewards, dones, info = env.step([action.flatten()])
             env.render() if render else None
             # input()
+            if "Inter" in env_id:
+                rewards = np.mean(rewards)
             ret += rewards
 
-            if dones:
+            if np.any(dones):
                 # print("Episode return: ", ret)
                 rets.append(ret)
                 counter += 1 if ret < -10 else 0
                 counter_ += 1
+                progress_bar.update(1)
                 ret = 0
                 obs = env.reset()
         print("episodes", counter_)
