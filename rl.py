@@ -148,6 +148,7 @@ def main():
             col_agent_speed,
             avg_intersect_area,
             avg_intersect_area_percent,
+            avg_col_severity,
             freezing_instances,
             avg_ttg,
             success_rate
@@ -164,7 +165,7 @@ def main():
                 'return', 'ttg', 'success_rate',
                 'col_rate', 'col_speed', 'col_agent_speed',
                 'col_intersection_area', 'col_intersection_percent',
-                'freezing_instances'
+                'col_severity_index', 'braking_instances', 'freezing_instances'
             ]
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             if not has_header:
@@ -178,6 +179,7 @@ def main():
                 "col_agent_speed": col_agent_speed,
                 "col_intersection_area": avg_intersect_area,
                 "col_intersection_percent": avg_intersect_area_percent,
+                "col_severity_index": avg_col_severity,
                 "freezing_instances": freezing_instances,
             })
     else:
