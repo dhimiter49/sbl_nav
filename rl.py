@@ -144,6 +144,7 @@ def main():
         print("Stats:")
         (
             col_rate,
+            col_rate_passive,
             col_speed,
             col_agent_speed,
             avg_intersect_area,
@@ -162,19 +163,26 @@ def main():
                 has_header = sniffer.has_header(csvfile.read(2048))
         with open(path, 'a', newline='') as csvfile:
             fieldnames = [
-                'return', 'ttg', 'success_rate',
-                'col_rate', 'col_speed', 'col_agent_speed',
+                'return', 'ttg', 'ttg_to', 'success_rate',
+                'col_rate', 'col_rate_passive', 'col_speed', 'col_agent_speed',
                 'col_intersection_area', 'col_intersection_percent',
                 'col_severity_index', 'braking_instances', 'freezing_instances'
             ]
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             if not has_header:
                 writer.writeheader()
+            max_ep_steps = env.get_attr("MAX_EPISODE_STEPS")[0]
+            dt = env.get_attr("dt")[0]
+            max_time = max_ep_steps * dt
+            to_rate = steps - success_rate - col_rate
             writer.writerow({
                 "return": np.mean(rets),
                 "ttg": avg_ttg,
+                "ttg_to": (avg_ttg * success_rate + max_time * to_rate) /\
+                    (success_rate + to_rate),
                 "success_rate": success_rate,
                 "col_rate": col_rate,
+                "col_rate_passive": col_rate_passive,
                 "col_speed": col_speed,
                 "col_agent_speed": col_agent_speed,
                 "col_intersection_area": avg_intersect_area,
